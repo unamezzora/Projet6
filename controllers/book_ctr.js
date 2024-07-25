@@ -1,6 +1,23 @@
 const Book = require('../models/book');
+const fs = require('fs');
 
 exports.createBook = (req, res, next) => {
+    const bookObjet = JSON.parse(req.body.book);
+    delete bookObjet._id;
+    delete bookObjet.__userId;
+    const book = new Book({
+        ...bookObjet,
+        userId: req.auth.userId,
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+    });
+
+    book.save()
+    .then(() => { res.status(201).json({message: 'Livre enregistré'})})
+    .catch((error) => { 
+        console.error('Erreur lors de la sauvegarde du livre:', error);
+        res.status(400).json({ error })})
+        
+    /*
     delete req.body._id
     const book = new Book({
         ...req.body
@@ -8,6 +25,7 @@ exports.createBook = (req, res, next) => {
     book.save()
     .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
     .catch(error => res.status(400).json({ error }));
+    */
 };
 
 exports.modifyBook = (req, res, next) => {
